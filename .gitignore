@@ -1,0 +1,15 @@
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Entornos virtuales
+venv/
+.env/
+.envrc
+
+# Archivos de configuración sensibles
+.env
+
+# Bases de datos
+*.db

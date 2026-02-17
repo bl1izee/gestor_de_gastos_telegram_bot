@@ -1,9 +1,11 @@
 import telebot
 import db
 import csv
-from os import remove
+from dotenv import load_dotenv # Cargar variables de entrono
+from os import remove, getenv
 
-TOKEN = "8541016502:AAEtR7yqKfXUftrhcpKULp91sGENq3k-HnY"
+load_dotenv()
+TOKEN = getenv("BOT_TOKEN")
 
 # Nos conectamos al bot a traves del TOKEN
 bot = telebot.TeleBot(TOKEN)
@@ -13,8 +15,6 @@ db.start_db()
 
 # Guarda el importe/pago
 def save_db(message, tipo: str):
-    pago = None
-    motivo = None
     try:
         arg = message.text.split()
         pago = float(arg[1])
@@ -40,6 +40,7 @@ def menu_help(message):
 /dump - Imprime una lista de los pagos
 /export - Exporta la base de datos en un csv
 /report - Imprime estadisticas de los gastos
+/edit - Permite editar un pago, sintaxis: /edit id cantidad motivo
 """)
 
 @bot.message_handler(commands=['pago'])
@@ -52,7 +53,7 @@ def save_importe(message):
 
 @bot.message_handler(commands=['dump'])
 def dump_db(message):
-    resultados = db.imprimir_db()
+    resultados = db.imprimir_db(message.from_user.id)
 
     if not resultados:
         bot.reply_to(message, "No tienes ningun importe/pago guardado")
@@ -62,7 +63,7 @@ def dump_db(message):
 
 @bot.message_handler(commands=['export'])
 def create_exel(message):
-    resultados = db.imprimir_db()
+    resultados = db.imprimir_db(message.from_user.id)
 
     with open('pagos.csv', 'w', encoding="utf-8") as csvfile:
         writer = csv.writer(csvfile)
@@ -77,7 +78,7 @@ def create_exel(message):
 
 @bot.message_handler(commands=['report'])
 def report_db(message):
-    resultados = db.imprimir_db()
+    resultados = db.imprimir_db(message.from_user.id)
 
     media=0
     total_pagos=0
@@ -90,8 +91,33 @@ def report_db(message):
             total_pagos+=data[3]
         else:
             total_ingresos+= data[3]
-    media = total_pagos / numero_pagos
-    bot.reply_to(message, f"Total de pagos {total_pagos/100}€\nMedia de pagos {media/100}€\nTotal de ingresos {total_ingresos/100}€")
 
+    try:
+        media = total_pagos / numero_pagos
+    except ZeroDivisionError:
+        media = total_pagos
+    bot.reply_to(message, f"Total de pagos {(total_pagos/100):.2f}€\nMedia de pagos {(media/100):.2f}€\nTotal de ingresos {(total_ingresos/100):.2f}€\nTotal este mes {(total_ingresos-total_pagos)/100:.2f}€")
+
+@bot.message_handler(commands=['edit'])
+def edit_db(message):
+    try:
+        arg = message.text.split()
+        id_pago = int(arg[1])
+        cantidad = int(float(arg[2]) * 100)
+
+        if not db.existe_pago(message.from_user.id, id_pago):
+            bot.reply_to(message, "ERROR, el id no existe, usa /dump para ver la lista de pagos/ingresos")
+            return
+
+        if(cantidad <= 0):
+            raise ValueError
+    except ValueError:
+        bot.reply_to(message, "ERROR, la cantidad debe ser un número válido y positivo")
+        return
+
+    motivo = " ".join(arg[3:])
+    bot.reply_to(message, f"Se ha editado correctamente, usa /update para ver la lista")
+
+    db.editar_db(message.from_user.id, id_pago, cantidad, motivo)
 
 bot.infinity_polling()
