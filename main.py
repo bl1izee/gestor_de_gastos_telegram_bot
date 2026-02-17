@@ -111,6 +111,9 @@ def edit_db(message):
 
         if(cantidad <= 0):
             raise ValueError
+    except IndexError:
+        menu_help(message)
+        return
     except ValueError:
         bot.reply_to(message, "ERROR, la cantidad debe ser un número válido y positivo")
         return
