@@ -12,30 +12,31 @@ def start_db():
     cursor.execute("""CREATE TABLE IF NOT EXISTS pagos (
         id_pagos INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
         id_user INTEGER NOT NULL,
-        importe INTEGER NOT NULL,
+        tipo TEXT CHECK(tipo IN ('ingreso','pago')) NOT NULL,
+        cantidad INTEGER NOT NULL,
         motivo TEXT,
         fecha TEXT NOT NULL);
-    """)  
+    """) 
+
     conn.commit()
     cursor.close()
     conn.close()
 
-def insert_pago(id_user: int, importe: float, motivo: str):
+def insert_db(tipo: str, id_user: int, cantidad: float, motivo: str):
     conn = sql.connect('pagos.db')
     cursor = conn.cursor()
 
     fecha = datetime.now().strftime("%Y-%m-%d")  # toma la fecha de hoy
-    importe = int(importe * 100)
+    cantidad = int(cantidad * 100)
 
     cursor.execute("""
-INSERT INTO pagos (id_user, importe, motivo, fecha)
-VALUES (?, ?, ?, ?)
-""", (id_user, importe, motivo, fecha))
+INSERT INTO pagos (id_user, tipo, cantidad, motivo, fecha)
+VALUES (?, ?, ?, ?, ?)
+""", (id_user, tipo, cantidad, motivo, fecha))
     
     conn.commit() 
     cursor.close()
     conn.close()
-
 
 def imprimir_db():
     conn = sql.connect('pagos.db')
