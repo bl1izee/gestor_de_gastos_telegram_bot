@@ -37,9 +37,9 @@ def menu_help(message):
 /help - Menú de ayuda
 /pago - Guardar un pago, sintaxis: /pago cantidad motivo
 /ingreso - Guarda un importe, sintaxis: /importe cantidad motivo
-/dump - Imprime una lista de los pagos
-/export - Exporta la base de datos en un csv
-/report - Imprime estadisticas de los gastos
+/dump - Imprime una lista de los pagos del mes actual
+/export - Exporta la todos los pagos historicos en un csv
+/report - Imprime estadisticas de los pagos/importes del mes actual
 /edit - Permite editar un pago, sintaxis: /edit id cantidad motivo
 """)
 
