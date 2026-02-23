@@ -26,6 +26,7 @@ def imprimir_db(id_user: int):
     response = supabase.table("pagos") \
         .select("*") \
         .eq("id_usuario", id_user) \
+        .order("id_pago", desc=False) \
         .execute()
     
     # Convertimos a lista de tuplas para mantener compatibilidad con /report y /export
